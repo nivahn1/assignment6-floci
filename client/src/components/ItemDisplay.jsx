@@ -1,3 +1,13 @@
+/**
+ * ItemDisplay.jsx -- renders a single todo row (toggle complete + delete).
+ *
+ * - toggleCompletion sends PUT /api/items/:id with the flipped `completed`
+ *   value; the updated item returned by the server is passed to onItemUpdate.
+ * - removeItem sends DELETE /api/items/:id (no body, and no JSON parse because
+ *   the backend replies with just status 200), then calls onItemRemoval.
+ * - Template literals interpolate item.id into the URL to match the :id route.
+ * - PUT/DELETE are explicit because fetch defaults to GET.
+ */
 import PropTypes from 'prop-types';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';

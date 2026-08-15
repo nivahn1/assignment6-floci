@@ -1,3 +1,14 @@
+/**
+ * AddNewItemForm.jsx -- controlled input form that creates a new item.
+ *
+ * - Controlled input: value={newItem} + onChange bind the field to React state.
+ * - submitNewItem calls e.preventDefault() (stops a page reload), then sends
+ *   POST /api/items with { name } as JSON. POST + Content-Type are explicit
+ *   because fetch defaults to GET and a body is needed to create the item.
+ * - On success it lifts the created item to the parent via onNewItem, clears the
+ *   submitting flag, and resets the input.
+ * - The `submitting` state toggles the button label/disabled state.
+ */
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import Button from 'react-bootstrap/Button';

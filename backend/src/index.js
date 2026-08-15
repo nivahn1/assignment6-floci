@@ -1,3 +1,19 @@
+/**
+ * Backend entry point (Express API server).
+ *
+ * - require('express') is a CommonJS import; express() creates the `app`.
+ * - require('./persistence') imports a DIRECTORY, so Node resolves it to
+ *   persistence/index.js (directory import -> index.js fallback). That module
+ *   picks MySQL or SQLite based on the MYSQL_HOST env var.
+ * - The route requires below import individual FILES (Node auto-appends .js);
+ *   each exports one (req, res) handler.
+ * - express.json() parses JSON request bodies into req.body.
+ * - express.static() serves the built frontend from /static.
+ * - Routes bind an HTTP method + path to a handler. Express routes on
+ *   method + path together, so GET and POST on /api/items are distinct routes.
+ *   `:id` is a route parameter, available as req.params.id.
+ * - The server only starts listening after db.init() succeeds.
+ */
 const express = require('express');
 const app = express();
 const db = require('./persistence');
