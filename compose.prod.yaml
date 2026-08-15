@@ -1,0 +1,97 @@
+###################################################
+# Production-style Compose file for the todo app.
+#
+# Unlike compose.yaml (the DEV environment, which runs the client and backend
+# as two separate live-reloading services), this file builds the Dockerfile's
+# `final` stage: a single image where the built React client is bundled into
+# the backend and served by it on port 3000.
+#
+# HOW TO RUN
+# ----------
+#   Build and start:
+#     docker compose -f compose.prod.yaml up --build
+#
+#   Then open:
+#     http://localhost           (app: frontend + /api/* served together)
+#
+#   Stop and remove containers:
+#     docker compose -f compose.prod.yaml down
+#
+#   Stop and also delete the database volume (wipes data):
+#     docker compose -f compose.prod.yaml down -v
+#
+# NOTE: Building the `final` target also runs the backend `test` stage, so the
+# backend tests must pass for the image to build.
+###################################################
+
+services:
+
+  ###################################################
+  # Service: proxy (Traefik)
+  #
+  # A reverse proxy that exposes the stack on port 80 and forwards all requests
+  # for `localhost` to the app service's port 3000. In this bundled production
+  # setup there is only one HTTP service, so the proxy isn't strictly required
+  # (you could map 80:3000 on the app instead). It's included here to provide a
+  # single, friendly entrypoint on port 80 and a place to later add TLS,
+  # additional hosts, or load balancing across replicas.
+  ###################################################
+  proxy:
+    image: traefik:v3.6
+    command: --providers.docker
+    ports:
+      - 80:80
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  ###################################################
+  # Service: app
+  #
+  # The production image built from the Dockerfile's `final` stage. The backend
+  # serves BOTH the REST API (/api/*) and the static, built client on port 3000.
+  #
+  # The environment variables point the backend at the MySQL service. The
+  # Traefik label routes all requests for `localhost` to this service's port 3000.
+  ###################################################
+  app:
+    build:
+      context: ./
+      target: final
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: root
+      MYSQL_PASSWORD: secret
+      MYSQL_DB: todos
+    depends_on:
+      mysql:
+        condition: service_healthy
+    labels:
+      traefik.http.routers.app.rule: Host(`localhost`)
+      traefik.http.services.app.loadbalancer.server.port: 3000
+
+  ###################################################
+  # Service: mysql
+  #
+  # The database. Data is persisted in the todo-mysql-data volume so it survives
+  # `down`/`up` cycles (unless you remove the volume with `down -v`).
+  ###################################################
+  mysql:
+    image: mysql:9.3
+    volumes:
+      - todo-mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: todos
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+###################################################
+# Volumes
+#
+# Persists the MySQL data between runs.
+###################################################
+volumes:
+  todo-mysql-data:
