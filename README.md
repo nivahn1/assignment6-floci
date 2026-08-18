@@ -1,13 +1,14 @@
-# Getting Started Todo App
+# Adding Kubernetes and Minikube
 
-This project provides a sample todo list application. It demonstrates all of
-the current Docker best practices, ranging from the Compose file, to the
-Dockerfile, to CI (using GitHub Actions), and running tests. It's intended to 
-be well-documented to ensure anyone can come in and easily learn.
+This project demonstrates converting a Compose-based app to Kubernetes and running it
+on a local minikube cluster. It's a stage-2 lab where students take a Docker Compose
+stack, generate Kubernetes manifests, and deploy to minikube with guidance from the
+K8s Local Tutor teaching agent.
 
 ## Application architecture
 
-![image](https://github.com/docker/getting-started-todo-app/assets/313480/c128b8e4-366f-4b6f-ad73-08e6652b7c4d)
+![Architecture diagram](./docs/architecture.png)
+<!-- TODO: Update with your architecture diagram if needed -->
 
 
 This sample application is a simple React frontend that receives data from a
@@ -29,8 +30,8 @@ To spin up the project, simply install Docker Desktop and then run the following
 commands:
 
 ```
-git clone https://github.com/docker/getting-started-todo-app
-cd getting-started-todo-app
+git clone https://bitbucket.org/txstatecs3398all/adding-kubernetes-and-minikube
+cd adding-kubernetes-and-minikube
 docker compose up --watch
 ```
 
