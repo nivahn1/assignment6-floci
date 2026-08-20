@@ -1,7 +1,7 @@
 ###################################################
 # Production-style Compose file for the todo app.
 #
-# Unlike compose.yaml (the DEV environment, which runs the client and backend
+# Unlike compose.dev.yaml (the DEV environment, which runs the client and backend
 # as two separate live-reloading services), this file builds the Dockerfile's
 # `final` stage: a single image where the built React client is bundled into
 # the backend and served by it on port 3000.
@@ -33,8 +33,10 @@ services:
   # for `localhost` to the app service's port 3000. In this bundled production
   # setup there is only one HTTP service, so the proxy isn't strictly required
   # (you could map 80:3000 on the app instead). It's included here to provide a
-  # single, friendly entrypoint on port 80 and a place to later add TLS,
-  # additional hosts, or load balancing across replicas.
+  # single, friendly entrypoint on port 80 and a place to later add TLS
+  # (Transport Layer Security, which enables HTTPS and encrypted connections),
+  # additional hosts, or load balancing across replicas. For local dev/minikube,
+  # unencrypted HTTP on port 80 is sufficient.
   ###################################################
   proxy:
     image: traefik:v3.6

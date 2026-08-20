@@ -6,7 +6,7 @@ communicate. They were compiled while studying the codebase file by file.
 
 ## 1. Architecture overview
 
-The app runs as a set of Docker Compose services (see `compose.yaml`):
+The app runs as a set of Docker Compose services (see `compose.dev.yaml`):
 
 - **proxy** (Traefik) — reverse proxy. Routes `localhost/api/*` to the backend
   and everything else to the client. This is why the client can use relative
