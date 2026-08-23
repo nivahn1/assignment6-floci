@@ -1,18 +1,19 @@
-# Component & Route Hierarchy
+# Architecture: Component & Route Hierarchy
 
 ## Client Component Tree
 
-```
-App (root)
-├── Greeting
-│   └── calls: GET /api/greeting
-│
-└── TodoListCard (state owner)
-    ├── AddItemForm
-    │   └── calls: POST /api/items
-    │
-    └── ItemDisplay (mapped, one per item)
-        └── calls: PUT /api/items/:id, DELETE /api/items/:id
+```mermaid
+graph TD
+    App["App (root)"]
+    Greeting["Greeting<br/>calls: GET /api/greeting"]
+    TodoListCard["TodoListCard (state owner)"]
+    AddItemForm["AddItemForm<br/>calls: POST /api/items"]
+    ItemDisplay["ItemDisplay (one per item)<br/>calls: PUT /api/items/:id<br/>DELETE /api/items/:id"]
+    
+    App --> Greeting
+    App --> TodoListCard
+    TodoListCard --> AddItemForm
+    TodoListCard --> ItemDisplay
 ```
 
 ## Backend REST API Routes

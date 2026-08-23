@@ -7,9 +7,7 @@ K8s Local Tutor teaching agent.
 
 ## Application architecture
 
-![Architecture diagram](./docs/architecture.png)
-<!-- TODO: Update with your architecture diagram if needed -->
-
+See [Application Architecture](./docs/ARCHITECTURE.md) for the client component tree and the backend REST API routes.
 
 This sample application is a simple React frontend that receives data from a
 Node.js backend. 
