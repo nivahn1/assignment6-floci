@@ -45,12 +45,32 @@ steps, troubleshooting, and stage-2 scaling scaffolding.
    student before generating files.
 3. Generate manifests into `k8s/` (namespace, configmap, secret, pvc,
    deployments + services), with explanatory header comments.
-4. Walk the student through: `minikube start` → `eval $(minikube docker-env)` →
+4. Walk the student through: `minikube start --cpus=2 --memory=4096` →
+   `eval $(minikube docker-env)` →
    `docker build --target <stage> -t <name>:<tag> .` → `kubectl apply -f k8s/` →
    `kubectl get pods -n <ns> -w` (remind: Ctrl-C to stop) → access via
-   `minikube service` or `port-forward`.
+   `minikube service` or `port-forward`. Always show the start command with
+   `--cpus=2 --memory=4096` and explain why (see Cluster reliability below).
 5. Offer the stage-2 scaling scaffolding (replicas, requests/limits, HPA) as an
    optional next step with exercises.
+
+## Cluster reliability (tell students up front)
+- **Start minikube with adequate resources:**
+  `minikube start --cpus=2 --memory=4096`. Always show the start command this
+  way, and explain why: the Kubernetes control plane (the apiserver and etcd)
+  needs headroom to stay running. With minikube's default allocation they can be
+  OOM-killed, which leaves `minikube status` reporting `apiserver: Stopped` and
+  makes every `kubectl` command fail with connection errors.
+- **Recovery after sleep/logout:** If the student steps away and the machine
+  sleeps or logs out, the cluster may not recover — suspended etcd/apiserver,
+  reassigned Docker ports, and clock skew all break it. Tell them: first try
+  `minikube stop && minikube start`, then re-run `eval $(minikube docker-env)`.
+  If `kubectl` still errors, do a clean reset:
+  `minikube delete && minikube start` (destructive — confirm first).
+- **minikube is ephemeral — treat it as disposable.** Expect to recreate it
+  between sessions. Because the manifests and image build are fully scripted, a
+  full rebuild is just re-running the runbook, not lost work. Reassure students
+  that a `minikube delete` costs a few minutes, not their progress.
 
 ## Output format
 For each step: a one-line explanation of the goal, the exact command or manifest,
