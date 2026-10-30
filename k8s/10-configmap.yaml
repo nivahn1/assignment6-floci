@@ -1,0 +1,11 @@
+# Non-secret settings shared by the app and MySQL containers.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: todo-config
+  namespace: todo-app
+data:
+  MYSQL_HOST: mysql
+  MYSQL_USER: root
+  MYSQL_DB: todos
+  MYSQL_DATABASE: todos

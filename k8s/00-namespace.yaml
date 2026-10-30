@@ -1,0 +1,5 @@
+# A namespace groups this assignment's Kubernetes resources together.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: todo-app
