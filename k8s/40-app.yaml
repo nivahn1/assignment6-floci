@@ -1,11 +1,18 @@
-# The app Deployment runs the bundled frontend and backend; the NodePort Service replaces the Compose proxy entry point.
+# The app Deployment runs the bundled frontend and backend.
+# Its image now comes from Floci's emulated ECR registry (the same pattern you
+# will use with real ECR on AWS), instead of being built inside minikube.
+# The ClusterIP Service gives the app a stable in-cluster address; you reach it
+# from your laptop with `kubectl port-forward` (see the README).
 apiVersion: v1
 kind: Service
 metadata:
   name: app-service
   namespace: todo-app
 spec:
-  type: NodePort
+  # minikube used NodePort + `minikube service`. The Floci k3s node does not
+  # publish NodePorts to your laptop, so ClusterIP + port-forward is simpler.
+  # On real EKS later, this becomes `type: LoadBalancer`.
+  type: ClusterIP
   selector:
     app: todo-app
   ports:
@@ -30,8 +37,15 @@ spec:
     spec:
       containers:
         - name: app
-          image: todo-app:latest
-          imagePullPolicy: Never
+          # <account>.dkr.ecr.<region>.<host>/<repository>:<tag>
+          # Floci's default account is 000000000000. The cluster is configured
+          # with a registry mirror, so this same name works for `docker push`
+          # on your laptop AND for the pull inside the cluster.
+          image: 000000000000.dkr.ecr.us-east-1.localhost:4566/todo-app:v1
+          # Pull from ECR the first time; reuse the cached copy after that.
+          # (minikube used `Never` because the image was built inside it.)
+          # Bump the tag (v2, v3, ...) when you push a new build.
+          imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 3000

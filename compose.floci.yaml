@@ -1,0 +1,50 @@
+###################################################
+# Floci: a local AWS emulator (replaces minikube in this assignment).
+#
+# Instead of a standalone local Kubernetes tool, we run an emulated AWS
+# account on your laptop. Floci gives us the same AWS APIs we'll use later on
+# the real cloud:
+#   - ECR (container registry)  -> we push the app image here
+#   - EKS (managed Kubernetes)  -> Floci starts a real k3s cluster in Docker
+#   - IAM / STS                 -> credentials that kubectl uses to log in
+#
+# HOW TO RUN
+# ----------
+#   docker compose -f compose.floci.yaml up -d
+#   docker compose -f compose.floci.yaml logs -f floci   # Ctrl-C to stop
+#
+# Everything (S3, ECR, EKS, IAM, ...) is served on ONE port: 4566.
+# Web console (optional): http://localhost:4566/_floci/ui
+#
+# Stop Floci:
+#   docker compose -f compose.floci.yaml down
+#   (delete the EKS cluster first - see the README, section 6)
+###################################################
+
+services:
+  floci:
+    image: floci/floci:latest
+    container_name: floci
+    # Floci starts Docker containers on your behalf (the k3s node for EKS and
+    # the registry behind ECR), so it needs the host Docker socket and root.
+    user: root
+    ports:
+      - "4566:4566"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - floci-net
+    environment:
+      # Put the k3s cluster container on the same network as Floci so the
+      # cluster can pull images from Floci's ECR.
+      FLOCI_SERVICES_DOCKER_NETWORK: floci-net
+      # Real Amazon EKS has no working default StorageClass until you install
+      # the EBS CSI driver, and Floci copies that behavior. Turning this on
+      # gives the cluster k3s's local-path storage so mysql-pvc can bind.
+      FLOCI_SERVICES_EKS_DEFAULT_STORAGE_CLASS: "true"
+
+networks:
+  floci-net:
+    # A fixed name (not the compose-prefixed default) so the variable above
+    # always matches.
+    name: floci-net

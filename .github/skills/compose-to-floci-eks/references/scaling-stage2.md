@@ -19,15 +19,18 @@ Teaching points:
   spread. Contrast declarative (`replicas:` in YAML) vs. imperative (`scale`).
 - **Stateless vs. stateful:** the app tier scales horizontally; the database
   generally does NOT just by bumping `replicas`. Great discussion prompt.
+- Floci runs a single k3s node, so all replicas land on one "machine". On real
+  EKS, replicas spread across node-group instances — a good lead-in to node
+  scaling (Cluster Autoscaler / Karpenter).
 
 ## 2. Resource requests and limits
 
 ```yaml
 resources:
-  requests:   # what the scheduler reserves
+  requests:        # what the scheduler reserves
     cpu: "100m"
     memory: "128Mi"
-  limits:     # hard ceiling before throttling/OOM-kill
+  limits:          # hard ceiling before throttling/OOM-kill
     cpu: "500m"
     memory: "256Mi"
 ```
@@ -36,12 +39,17 @@ Teaching points:
 - `requests` drive scheduling and are the denominator for autoscaling.
 - Without `requests`, a HorizontalPodAutoscaler on CPU has nothing to compute
   utilization against.
+- Keep totals modest: everything shares the memory you gave Docker Desktop.
 
 ## 3. HorizontalPodAutoscaler (automatic scaling)
 
 ```yaml
-# Requires the metrics-server addon:
-#   minikube addons enable metrics-server
+# Requires a working metrics API. k3s normally bundles metrics-server; check:
+#   kubectl get deployment metrics-server -n kube-system
+#   kubectl top pods -n <ns>
+# If `kubectl top` errors, install metrics-server:
+#   kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+# (On real EKS you install metrics-server yourself or via the EKS add-on.)
 #
 # apiVersion: autoscaling/v2
 # kind: HorizontalPodAutoscaler
@@ -52,7 +60,7 @@ Teaching points:
 #   scaleTargetRef:
 #     apiVersion: apps/v1
 #     kind: Deployment
-#     name: app
+#     name: <app-deployment>
 #   minReplicas: 1
 #   maxReplicas: 5
 #   metrics:
@@ -65,15 +73,17 @@ Teaching points:
 ```
 
 Teaching points:
-- Enable `metrics-server` first, or the HPA reports `<unknown>` targets.
-- Generate load (e.g. a simple `hey`/`ab`/loop) and watch
-  `kubectl get hpa -n <ns> -w` scale pods up, then back down.
+- Confirm `kubectl top pods` works first, or the HPA reports `<unknown>` targets.
+- Generate load (e.g. a simple `hey`/`ab`/loop through `port-forward`, or a
+  busybox pod hitting the Service) and watch `kubectl get hpa -n <ns> -w`
+  scale pods up, then back down.
 - Connect back to the requests/limits: autoscaling is meaningless without them.
 
 ## Suggested student exercises
 
 1. Scale the app to 3 replicas manually; confirm the Service balances requests.
 2. Add requests/limits; observe scheduling behavior.
-3. Enable metrics-server + HPA; drive load and observe autoscaling.
+3. Verify metrics, add the HPA; drive load and observe autoscaling.
 4. Discuss why the database tier needs a different strategy (StatefulSet,
-   read replicas, connection pooling) — a lead-in to later material.
+   read replicas, connection pooling, or a managed service like RDS) — a lead-in
+   to later material.
